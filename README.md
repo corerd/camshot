@@ -6,7 +6,6 @@ Video surveillance with OpenCV and Python
 
 The MIT License
 ---------------
-The MIT License (MIT)
 
 Copyright (c) 2014 Corrado Ubezio
 
