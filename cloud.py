@@ -24,6 +24,7 @@
 #
 from __future__ import with_statement
 
+from camshotlog import logAppend
 from time import sleep
 from contextlib import closing
 from dropbox import DropboxCommand, is_dropbox_running, start_dropbox
@@ -80,7 +81,7 @@ def syncWait(stimeout):
         except CloudError as e:
             if e.etype == 'DaemonNotRunningError' and not daemonNotRunningErrorAlreadyGet:
                 daemonNotRunningErrorAlreadyGet = True
-                print 'dropbox start'
+                logAppend('dropbox start')
                 if not start_dropbox():
                     raise CloudError("DaemonNotInstalledError", "The Dropbox daemon is not installed!")
             else:

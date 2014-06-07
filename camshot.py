@@ -23,6 +23,7 @@
 # SOFTWARE.
 
 from camgrab import imageCapture
+from camshotlog import logInit, logAppend
 from cloud import syncWait
 from shutdown import suspend, hasPrivilegesToShutdown
 from time import time
@@ -52,16 +53,16 @@ def grab(picturesBaseDir):
     pictureFileFullName = '{0:s}/CS{1:%Y%m%d%H%M}_{2:02d}'.format(picturesDirName, now, cameraIndex)
     try:
         makedirs(picturesDirName)
-        print '%s: create directory %s' % (MAIN_SCRIPT_NAME, picturesDirName)
+        logAppend('%s: create directory %s' % (MAIN_SCRIPT_NAME, picturesDirName))
     except OSError, e:
         if not path.isdir(picturesDirName):
             # If the directory doesn't already exist, there was an error on creation
             raise CamShotError("{0}: create directory {1} [OS errno {2}]: {3}".format(MAIN_SCRIPT_NAME, picturesDirName, e.errno, e.strerror))
-    print '%s: grab in file %s' % (MAIN_SCRIPT_NAME, pictureFileFullName)
+    logAppend('%s: grab in file %s' % (MAIN_SCRIPT_NAME, pictureFileFullName))
 
     # Grab a picture from the first camera
     if imageCapture(cameraIndex, pictureFileFullName):
-        print '%s: grab picture error' % (MAIN_SCRIPT_NAME)
+        logAppend('%s: grab picture error' % (MAIN_SCRIPT_NAME))
         #raise CamShotError('%s: grab picture error' % (MAIN_SCRIPT_NAME))
 
 def grabLoop(workingDir):
@@ -92,12 +93,13 @@ def main(argc, argv):
     if not hasPrivilegesToShutdown():
         print '%s: You need to have root privileges to run this script!' % (MAIN_SCRIPT_NAME)
         return 1
+    logInit('{0}/{1}-log.txt'.format(workingDir, MAIN_SCRIPT_NAME))
     try:
         if grabLoop(workingDir) == 1:
-            print 'Stopped by the User'
+            logAppend('Stopped by the User')
     except Exception as e:
         #catch ANY exception
-        print '{0}'.format(e)
+        logAppend('{0}'.format(e))
         return 2  #severe error
     return 0
 
