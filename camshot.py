@@ -93,7 +93,7 @@ def main(argc, argv):
     if not hasPrivilegesToShutdown():
         print '%s: You need to have root privileges to run this script!' % (MAIN_SCRIPT_NAME)
         return 1
-    logInit('{0}/{1}-log.txt'.format(workingDir, MAIN_SCRIPT_NAME))
+    logInit('{0}/{1}-log.txt'.format(workingDir, path.splitext(MAIN_SCRIPT_NAME)[0]))
     try:
         if grabLoop(workingDir) == 1:
             logAppend('Stopped by the User')
