@@ -25,11 +25,18 @@
 # How to Make Your Linux PC Wake From Sleep Automatically
 # Link http://www.howtogeek.com/121241/how-to-make-your-linux-pc-wake-from-sleep-automatically/
 #
-from time import time, sleep
+from time import time 
 from subprocess32 import call
 from os import geteuid
 from sys import stderr
 
+
+class SuspendError(Exception):
+    def __init__(self, etype, emesg):
+        self.etype = etype
+        self.emesg = emesg
+    def __str__(self):
+        return "{0}('{1}')".format(self.etype, self.emesg)
 
 def hasPrivilegesToShutdown():
     if geteuid() != 0:
@@ -41,22 +48,15 @@ def suspend(waitSeconds):
         return
     print 'Put the system in suspend mode and awakened between %d seconds' % waitSeconds
     suspendCmd = 'rtcwake -m mem -s %d' % (waitSeconds)
-    suspendFail = True
     suspendStartTime = time()
     try:
         retcode = call(suspendCmd, shell=True)
         if retcode < 0:
-            print >>stderr, "suspend: rtcwake was terminated by signal", -retcode
-        elif retcode > 0:
-            print >>stderr, "suspend: rtcwake returned error code", retcode
-        else:
-            suspendFail = False
+            raise SuspendError("rtc", "suspend: rtcwake was terminated by signal {0}".format(-retcode))
+        if retcode > 0:
+            raise SuspendError("rtc", "suspend: rtcwake returned error code {0}".format(retcode))
     except OSError as e:
-        print >>stderr, "suspend: rtcwake execution failed:", e
-    if suspendFail:
-        print 'System suspend failed: sleeping...'
-        sleep(waitSeconds)
-
+        raise SuspendError("OSError", "suspend: rtcwake execution failed: {0}".format(e))
     # Resume from suspend
     if time() - suspendStartTime < waitSeconds:
         # Resume from suspend was not caused by the rtc, such as power button or keyboard
@@ -67,11 +67,15 @@ def suspend(waitSeconds):
 if __name__ == "__main__":
     print 'suspend test'
     if hasPrivilegesToShutdown():
-        resumeFromRTC = suspend(10)
-        if resumeFromRTC:
-            print 'awakened from suspend'
+        try:
+            resumeFromRTC = suspend(10)
+        except SuspendError as e:
+            print '{0}'.format(e)
         else:
-            print 'Resume from suspend was not caused by the rtc'
+            if resumeFromRTC:
+                print 'awakened from suspend'
+            else:
+                print 'Resume from suspend was not caused by the rtc'
     else:
         print 'You need to have root privileges to run this script!'
 

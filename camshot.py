@@ -36,6 +36,13 @@ MAIN_SCRIPT_DIR = None
 
 ELAPSED_TIME_BETWEEN_SHOTS = 15*60  #seconds
 
+
+class CamShotError(Exception):
+    def __init__(self, emesg):
+        self.emesg = emesg
+    def __str__(self):
+        return "{0}".format(self.emesg)
+
 def grab(picturesBaseDir):
     cameraIndex = 0
 
@@ -49,13 +56,13 @@ def grab(picturesBaseDir):
     except OSError, e:
         if not path.isdir(picturesDirName):
             # If the directory doesn't already exist, there was an error on creation
-            print "{0}: create directory {1} [OS errno {2}]: {3}".format(MAIN_SCRIPT_NAME, picturesDirName, e.errno, e.strerror)
-            return
+            raise CamShotError("{0}: create directory {1} [OS errno {2}]: {3}".format(MAIN_SCRIPT_NAME, picturesDirName, e.errno, e.strerror))
     print '%s: grab in file %s' % (MAIN_SCRIPT_NAME, pictureFileFullName)
 
     # Grab a picture from the first camera
     if imageCapture(cameraIndex, pictureFileFullName):
         print '%s: grab picture error' % (MAIN_SCRIPT_NAME)
+        #raise CamShotError('%s: grab picture error' % (MAIN_SCRIPT_NAME))
 
 def grabLoop(workingDir):
     while True:
@@ -85,8 +92,13 @@ def main(argc, argv):
     if not hasPrivilegesToShutdown():
         print '%s: You need to have root privileges to run this script!' % (MAIN_SCRIPT_NAME)
         return 1
-    if grabLoop(workingDir) == 1:
-        print 'Stopped by the User'
+    try:
+        if grabLoop(workingDir) == 1:
+            print 'Stopped by the User'
+    except Exception as e:
+        #catch ANY exception
+        print '{0}'.format(e)
+        return 2  #severe error
     return 0
 
 if __name__ == "__main__":
