@@ -81,17 +81,20 @@ def syncWait(stimeout):
         except CloudError as e:
             if e.etype == 'DaemonNotRunningError' and not daemonNotRunningErrorAlreadyGet:
                 daemonNotRunningErrorAlreadyGet = True
-                logAppend('dropbox start')
+                logAppend('dropbox: start daemon')
                 if not start_dropbox():
                     raise CloudError("DaemonNotInstalledError", "The Dropbox daemon is not installed!")
             else:
                 raise
-        if statusLines:
+        if statusLines is not None:
             if len(statusLines) > 0:
                 if statusLines[0] == 'Up to date':
                     return
         sleep(SLEEP_SECONDS)
         nsec = nsec + SLEEP_SECONDS
+    if statusLines is not None:
+        for statusLine in statusLines:
+            logAppend('dropbox: {0}'.format(statusLine))
     raise CloudError("SyncingTimeoutError", "Syncing timeout")
  
 def syncWaitFake():
@@ -102,7 +105,7 @@ def syncWaitFake():
 
 if __name__ == "__main__":
     try:
-        syncWait(60)
+        syncWait(30)
     except CloudError as e:
         print "Couldn't sync"
         print 'Cloud Exception: {0}'.format(e)

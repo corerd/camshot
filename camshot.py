@@ -25,8 +25,8 @@
 from camgrab import imageCapture
 from camshotlog import logInit, logAppend
 from cloud import syncWait
-from shutdown import suspend, hasPrivilegesToShutdown
-from time import time
+from shutdown import shutdown, suspend, hasPrivilegesToShutdown
+from time import time, sleep
 from datetime import datetime
 from sys import argv, exit
 from os import makedirs, path
@@ -96,14 +96,18 @@ def main(argc, argv):
     logInit('{0}/{1}-log.txt'.format(workingDir, path.splitext(MAIN_SCRIPT_NAME)[0]))
     try:
         if grabLoop(workingDir) == 1:
-            logAppend('Stopped by the User')
+            logAppend('%s: stopped by the User' % (MAIN_SCRIPT_NAME))
     except Exception as e:
         #catch ANY exception
-        logAppend('{0}'.format(e))
+        logAppend('{0}: unrecovable exception {1}'.format(MAIN_SCRIPT_NAME, e))
         return 2  #severe error
     return 0
 
 if __name__ == "__main__":
     ret = main(len(argv), argv)
     if ret is not None:
+        if ret == 2:
+            logAppend('%s: System shutdown' % (MAIN_SCRIPT_NAME))
+            sleep(19)
+            shutdown()
         exit(ret)

@@ -60,9 +60,11 @@ def suspend(waitSeconds):
     # Resume from suspend
     if time() - suspendStartTime < waitSeconds:
         # Resume from suspend was not caused by the rtc, such as power button or keyboard
-        return False
+        return False 
     return True
 
+def shutdown():
+    call('shutdown -h now', shell=True)
 
 if __name__ == "__main__":
     print 'suspend test'
