@@ -63,7 +63,10 @@ def grabLoop(workingDir):
         syncWait(120)
         grab(workingDir)
         syncWait(120)
-        suspend(ELAPSED_TIME_BETWEEN_SHOTS - (time() - tBegin))
+        isResumedFromRTC = suspend(ELAPSED_TIME_BETWEEN_SHOTS - (time() - tBegin))
+        if not isResumedFromRTC:
+            return 1 
+    return 0
 
 def usage():
     print '%s usage:' % (APPLICATION_NAME)
@@ -82,7 +85,8 @@ def main(argc, argv):
     if not hasPrivilegesToShutdown():
         print '%s: You need to have root privileges to run this script!' % (MAIN_SCRIPT_NAME)
         return 1
-    grabLoop(workingDir)
+    if grabLoop(workingDir) == 1:
+        print 'Stopped by the User'
     return 0
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@
 # How to Make Your Linux PC Wake From Sleep Automatically
 # Link http://www.howtogeek.com/121241/how-to-make-your-linux-pc-wake-from-sleep-automatically/
 #
-from time import sleep
+from time import time, sleep
 from subprocess32 import call
 from os import geteuid
 from sys import stderr
@@ -36,12 +36,13 @@ def hasPrivilegesToShutdown():
         return False
     return True
 
-def suspend(waitSeconds, onResume=None):
+def suspend(waitSeconds):
     if waitSeconds <= 0:
         return
     print 'Put the system in suspend mode and awakened between %d seconds' % waitSeconds
     suspendCmd = 'rtcwake -m mem -s %d' % (waitSeconds)
     suspendFail = True
+    suspendStartTime = time()
     try:
         retcode = call(suspendCmd, shell=True)
         if retcode < 0:
@@ -56,11 +57,21 @@ def suspend(waitSeconds, onResume=None):
         print 'System suspend failed: sleeping...'
         sleep(waitSeconds)
 
+    # Resume from suspend
+    if time() - suspendStartTime < waitSeconds:
+        # Resume from suspend was not caused by the rtc, such as power button or keyboard
+        return False
+    return True
+
+
 if __name__ == "__main__":
     print 'suspend test'
     if hasPrivilegesToShutdown():
-        suspend(10)
-        print 'awakened from suspend'
+        resumeFromRTC = suspend(10)
+        if resumeFromRTC:
+            print 'awakened from suspend'
+        else:
+            print 'Resume from suspend was not caused by the rtc'
     else:
         print 'You need to have root privileges to run this script!'
 
