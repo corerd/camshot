@@ -33,9 +33,9 @@ def imageCapture(cameraIndex, imageName):
     s, img = cam.read()
     if not s:
         # frame captured returns errors
-        return 1
+        return False
     imwrite(imageName+'.jpg',img) #save JPG image
-    return 0
+    return True
 
 if __name__ == "__main__":
     picture = "camshot"

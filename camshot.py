@@ -61,9 +61,14 @@ def grab(picturesBaseDir):
     logAppend('%s: grab in file %s' % (MAIN_SCRIPT_NAME, pictureFileFullName))
 
     # Grab a picture from the first camera
-    if imageCapture(cameraIndex, pictureFileFullName):
-        logAppend('%s: grab picture error' % (MAIN_SCRIPT_NAME))
-        #raise CamShotError('%s: grab picture error' % (MAIN_SCRIPT_NAME))
+    imageCaptureTries = 0
+    while imageCaptureTries < 3:
+        if imageCapture(cameraIndex, pictureFileFullName):
+            break;
+        sleep(3)
+        imageCaptureTries = imageCaptureTries + 1
+    if imageCaptureTries >= 3:
+        raise CamShotError('%s: grab picture error' % (MAIN_SCRIPT_NAME))
 
 def grabLoop(workingDir):
     while True:
@@ -108,6 +113,6 @@ if __name__ == "__main__":
     if ret is not None:
         if ret == 2:
             logAppend('%s: System shutdown' % (MAIN_SCRIPT_NAME))
-            sleep(19)
+            sleep(20)
             shutdown()
         exit(ret)
