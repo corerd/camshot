@@ -26,11 +26,18 @@ from datetime import datetime
 
 logFileName = ''
 
+class logAppendError(Exception):
+    def __init__(self, emesg):
+        self.emesg = emesg
+    def __str__(self):
+        return "{0}".format(self.emesg)
+
 def logInit(fileName):
     global logFileName
     logFileName = fileName
 
 def logAppend(logLine):
+    global logFileName
     logLine = '[{0}] {1}'.format(datetime.now(), logLine)
     print logLine 
     if logFileName == '':
@@ -40,7 +47,8 @@ def logAppend(logLine):
             logFile.write(logLine+'\n')
     except Exception as e:
         #catch ANY exception
-        print '{0}'.format(e)
+        logFileName = ''  #prevet any subsequent write to log file
+        raise logAppendError('logAppend: {0}'.format(e))
  
 if __name__ == "__main__":
     logInit('pippoLog.txt')
