@@ -26,9 +26,10 @@
 # Link http://www.howtogeek.com/121241/how-to-make-your-linux-pc-wake-from-sleep-automatically/
 #
 from time import time 
-from subprocess32 import call
 from os import geteuid
 from sys import stderr
+from camshotlog import logAppend
+from shell import callExt, ShellError
 
 
 class SuspendError(Exception):
@@ -39,23 +40,35 @@ class SuspendError(Exception):
         return "{0}('{1}')".format(self.etype, self.emesg)
 
 def hasPrivilegesToShutdown():
+    return True
     if geteuid() != 0:
         return False
     return True
 
-def suspend(waitSeconds):
+def screenPowerSave(on):
+    if on:
+        callExt('vbetool dpms off')
+    else:
+        callExt('vbetool dpms on')
+
+def suspend(waitSeconds, onResume=None):
     if waitSeconds <= 0:
         return
-    print 'Put the system in suspend mode and awakened between %d seconds' % waitSeconds
     suspendCmd = 'rtcwake -m mem -s %d' % (waitSeconds)
+    if onResume is not None:
+        suspendCmd = '{0} && {1}'.format(suspendCmd, onResume)
     suspendStartTime = time()
     try:
-        retcode = call(suspendCmd, shell=True)
+        retcode, output = callExt(suspendCmd)
+        if len(output) > 0:
+            #print the output of the external command
+            for outLine in output.splitlines():
+                logAppend("callExt: {0}".format(outLine))
         if retcode < 0:
             raise SuspendError("rtc", "suspend: rtcwake was terminated by signal {0}".format(-retcode))
         if retcode > 0:
             raise SuspendError("rtc", "suspend: rtcwake returned error code {0}".format(retcode))
-    except OSError as e:
+    except ShellError as e:
         raise SuspendError("OSError", "suspend: rtcwake execution failed: {0}".format(e))
     # Resume from suspend
     if time() - suspendStartTime < waitSeconds:
@@ -64,12 +77,17 @@ def suspend(waitSeconds):
     return True
 
 def shutdown():
-    call('shutdown -h now', shell=True)
-
+    retcode, output = callExt('shutdown -h now')
+    if len(output) > 0:
+        #print the output of the external command
+        for outLine in output.splitlines():
+            logAppend("callExt: {0}".format(outLine))
+ 
 if __name__ == "__main__":
     print 'suspend test'
     if hasPrivilegesToShutdown():
         try:
+            #resumeFromRTC = suspend(10, 'vbetool dpms off')
             resumeFromRTC = suspend(10)
         except SuspendError as e:
             print '{0}'.format(e)
