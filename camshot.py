@@ -36,6 +36,7 @@ MAIN_SCRIPT_NAME = None
 MAIN_SCRIPT_DIR = None
 
 ELAPSED_TIME_BETWEEN_SHOTS = 15*60  #seconds
+TIME_BEFORE_SHUTDOWN = 20  #seconds
 
 
 class CamShotError(Exception):
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     ret = main(len(argv), argv)
     if ret is not None:
         if ret == 2:
-            logAppend('%s: System shutdown' % (MAIN_SCRIPT_NAME))
-            sleep(20)
+            logAppend('%s: system will shut down in %d seconds' % (MAIN_SCRIPT_NAME, TIME_BEFORE_SHUTDOWN))
+            sleep(TIME_BEFORE_SHUTDOWN)
             shutdown()
         exit(ret)

@@ -51,6 +51,20 @@ def screenPowerSave(on):
     else:
         callExt('vbetool dpms on')
 
+def syncDiskWithMemory():
+    print 'Sync Disk With Memory'
+    try:
+        retcode, output = callExt('sync')
+        if len(output) > 0:
+            #print the output of the external command
+            for outLine in output.splitlines():
+                logAppend("sync: {0}".format(outLine))
+        if retcode < 0:
+            raise SuspendError("sync", "sync was terminated with failure code {0}".format(-retcode))
+    except ShellError as e:
+        raise SuspendError("OSError", "sync execution failed: {0}".format(e))
+ 
+
 def suspend(waitSeconds, onResume=None):
     if waitSeconds <= 0:
         return
@@ -58,6 +72,7 @@ def suspend(waitSeconds, onResume=None):
     if onResume is not None:
         suspendCmd = '{0} && {1}'.format(suspendCmd, onResume)
     suspendStartTime = time()
+    syncDiskWithMemory()
     try:
         retcode, output = callExt(suspendCmd)
         if len(output) > 0:
