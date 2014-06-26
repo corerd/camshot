@@ -1,5 +1,13 @@
 #!/usr/bin/python
 #
+# This module depends on dropbox.py that is the Dropbox Command Line Interface.
+# A copy of this script has been downloaded from the official site:
+# https://www.dropbox.com/download?dl=packages/dropbox.py
+#
+# You can find an overview of the Dropbox CLI below:
+# http://www.dropboxwiki.com/tips-and-tricks/using-the-official-dropbox-command-line-interface-cli
+#
+#
 # The MIT License (MIT)
 # 
 # Copyright (c) 2014 Corrado Ubezio
