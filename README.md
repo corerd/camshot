@@ -13,15 +13,15 @@ camshot.py [working-directory]
 Requirements
 ------------
 
-Superuser privileges to run the camshot script.
-[Dropbox](https://www.dropbox.com/)
+- Superuser privileges to run the camshot script.
+- [Dropbox](https://www.dropbox.com/)
 
 
 External Python packages
 ------------------------
 
-[OpenCV] (http://opencv.org/)
-[croniter](https://pypi.python.org/pypi/croniter)
+- [OpenCV] (http://opencv.org/)
+- [croniter](https://pypi.python.org/pypi/croniter)
 
 
 The MIT License
