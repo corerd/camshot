@@ -25,18 +25,23 @@
 from camgrab import imageCapture
 from camshotlog import logInit, logAppend
 from cloud import syncWait
+from ConfigParser import RawConfigParser
 from shutdown import shutdown, suspend, hasPrivilegesToShutdown
 from time import time, sleep
 from datetime import datetime
 from sys import argv, exit
 from os import makedirs, path
 
+# Globals
 APPLICATION_NAME = 'Camera Shot'
-MAIN_SCRIPT_NAME = None
-MAIN_SCRIPT_DIR = None
+MAIN_SCRIPT_NAME = 'camshot.py'
+MAIN_SCRIPT_DIR = '.'
 
-ELAPSED_TIME_BETWEEN_SHOTS = 15*60  #seconds
+# Configuration parameter defaults
 TIME_BEFORE_SHUTDOWN = 20  #seconds
+TIME_ELAPSED_BETWEEN_SHOTS = 15*60  #seconds
+TIME_DAYLIGHT_BEGIN = '0 8 * * 1-5'    # cron like format: 08:00 from Monday to Friday
+TIME_DAYLIGHT_END   = '30 18 * * 1-5'  # cron like format: 18:30 from Monday to Friday
 
 
 class CamShotError(Exception):
@@ -44,6 +49,34 @@ class CamShotError(Exception):
         self.emesg = emesg
     def __str__(self):
         return "{0}".format(self.emesg)
+
+def configUpdate():
+    global TIME_ELAPSED_BETWEEN_SHOTS, TIME_DAYLIGHT_BEGIN, TIME_DAYLIGHT_END
+    cfgFileName = '{0}/{1}.cfg'.format(MAIN_SCRIPT_DIR, path.splitext(MAIN_SCRIPT_NAME)[0])
+    config = RawConfigParser()
+    try:
+        config.read(cfgFileName)
+        sleepTimeValue = eval( config.get("rtc-setup", "sleep-time") )
+        daylightBegin = config.get("rtc-setup", "daylight-begin")
+        daylightEnd = config.get("rtc-setup", "daylight-end")
+    except:
+        # config file errors
+        return
+    TIME_ELAPSED_BETWEEN_SHOTS = sleepTimeValue
+    TIME_DAYLIGHT_BEGIN = daylightBegin
+    TIME_DAYLIGHT_END = daylightEnd
+
+def configUpdateDemo():
+    print '--- configUpdateDemo'
+    print 'Config parameters before'
+    print TIME_ELAPSED_BETWEEN_SHOTS
+    print TIME_DAYLIGHT_BEGIN
+    print TIME_DAYLIGHT_END
+    configUpdate()
+    print 'Config parameters after'
+    print TIME_ELAPSED_BETWEEN_SHOTS
+    print TIME_DAYLIGHT_BEGIN
+    print TIME_DAYLIGHT_END
 
 def grab(picturesBaseDir):
     cameraIndex = 0
@@ -77,7 +110,7 @@ def grabLoop(workingDir):
         syncWait(120)
         grab(workingDir)
         syncWait(120)
-        isResumedFromRTC = suspend(ELAPSED_TIME_BETWEEN_SHOTS - (time() - tBegin))
+        isResumedFromRTC = suspend(TIME_ELAPSED_BETWEEN_SHOTS - (time() - tBegin))
         if not isResumedFromRTC:
             return 1 
     return 0
@@ -110,6 +143,9 @@ def main(argc, argv):
     return 0
 
 if __name__ == "__main__":
+    configUpdateDemo()
+    exit(0)
+
     ret = main(len(argv), argv)
     if ret is not None:
         if ret == 2:
