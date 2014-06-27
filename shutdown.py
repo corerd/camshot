@@ -40,7 +40,6 @@ class SuspendError(Exception):
         return "{0}('{1}')".format(self.etype, self.emesg)
 
 def hasPrivilegesToShutdown():
-    return True
     if geteuid() != 0:
         return False
     return True
