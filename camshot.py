@@ -25,8 +25,9 @@
 from camgrab import imageCapture
 from camshotlog import logInit, logAppend
 from cloud import syncWait
-from ConfigParser import RawConfigParser
 from shutdown import shutdown, suspend, hasPrivilegesToShutdown
+from daylight import DaylightRepeatingEvent
+from ConfigParser import RawConfigParser
 from time import time, sleep
 from datetime import datetime
 from sys import argv, exit
@@ -38,7 +39,7 @@ MAIN_SCRIPT_NAME = 'camshot.py'
 MAIN_SCRIPT_DIR = '.'
 
 # Configuration parameter defaults
-TIME_BEFORE_SHUTDOWN = 20  #seconds
+TIME_BEFORE_SHUTDOWN = 1  #minutes
 TIME_ELAPSED_BETWEEN_SHOTS = 15*60  #seconds
 TIME_DAYLIGHT_BEGIN = '0 8 * * 1-5'    # cron like format: 08:00 from Monday to Friday
 TIME_DAYLIGHT_END   = '30 18 * * 1-5'  # cron like format: 18:30 from Monday to Friday
@@ -66,17 +67,11 @@ def configUpdate():
     TIME_DAYLIGHT_BEGIN = daylightBegin
     TIME_DAYLIGHT_END = daylightEnd
 
-def configUpdateDemo():
-    print '--- configUpdateDemo'
-    print 'Config parameters before'
-    print TIME_ELAPSED_BETWEEN_SHOTS
-    print TIME_DAYLIGHT_BEGIN
-    print TIME_DAYLIGHT_END
-    configUpdate()
-    print 'Config parameters after'
-    print TIME_ELAPSED_BETWEEN_SHOTS
-    print TIME_DAYLIGHT_BEGIN
-    print TIME_DAYLIGHT_END
+def get_delay_between_shots():
+    wakeup_datetime = DaylightRepeatingEvent(TIME_ELAPSED_BETWEEN_SHOTS, TIME_DAYLIGHT_BEGIN, TIME_DAYLIGHT_END)
+    now = datetime.now()
+    next_datetime = wakeup_datetime.next_occurrence(now)
+    return int( (next_datetime-now).total_seconds() )
 
 def grab(picturesBaseDir):
     cameraIndex = 0
@@ -108,9 +103,10 @@ def grabLoop(workingDir):
     while True:
         tBegin = time()
         syncWait(120)
+        configUpdate()
         grab(workingDir)
         syncWait(120)
-        isResumedFromRTC = suspend(TIME_ELAPSED_BETWEEN_SHOTS - (time() - tBegin))
+        isResumedFromRTC = suspend(get_delay_between_shots() - (time()-tBegin))
         if not isResumedFromRTC:
             return 1 
     return 0
@@ -143,13 +139,9 @@ def main(argc, argv):
     return 0
 
 if __name__ == "__main__":
-    configUpdateDemo()
-    exit(0)
-
     ret = main(len(argv), argv)
     if ret is not None:
         if ret == 2:
-            logAppend('%s: system will shut down in %d seconds' % (MAIN_SCRIPT_NAME, TIME_BEFORE_SHUTDOWN))
-            sleep(TIME_BEFORE_SHUTDOWN)
-            shutdown()
+            logAppend('%s: system will shut down in %d minutes' % (MAIN_SCRIPT_NAME, TIME_BEFORE_SHUTDOWN))
+            shutdown(TIME_BEFORE_SHUTDOWN)
         exit(ret)

@@ -90,8 +90,9 @@ def suspend(waitSeconds, onResume=None):
         return False 
     return True
 
-def shutdown():
-    retcode, output = callExt('shutdown -h now')
+def shutdown(minutes_to_delay):
+    shutdownCmd = 'shutdown -h +%d' % (minutes_to_delay)
+    retcode, output = callExt(shutdownCmd)
     if len(output) > 0:
         #print the output of the external command
         for outLine in output.splitlines():
