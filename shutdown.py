@@ -67,7 +67,7 @@ def syncDiskWithMemory():
 def suspend(waitSeconds, onResume=None):
     if waitSeconds <= 0:
         return
-    suspendCmd = 'rtcwake -m mem -s %d' % (waitSeconds)
+    suspendCmd = 'rtcwake -l -m mem -s %d' % (waitSeconds)
     if onResume is not None:
         suspendCmd = '{0} && {1}'.format(suspendCmd, onResume)
     suspendStartTime = time()

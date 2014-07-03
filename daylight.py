@@ -39,6 +39,23 @@ class DaylightRepeatingEvent:
         self.time_daylight_begin = time_daylight_begin
         self.time_daylight_end = time_daylight_end
 
+    def is_daylight(self, now):
+        '''Check if current date-time is in daylight range
+        according to the crontab style rules.
+
+        :param now: Current date-time
+        :type now: datetime.datetime
+        :return: True if now is in daylight range
+        '''
+        today = now.replace(hour=0, minute=0)
+        iter_today_begin = croniter(self.time_daylight_begin, today)
+        if now < iter_today_begin.get_next(datetime):
+            return False
+        iter_today_end = croniter(self.time_daylight_end, today)
+        if now > iter_today_end.get_next(datetime):
+            return False
+        return True
+
     def next_occurrence(self, start_datetime):
         '''Gets the next date-time occurrence starting from start_datetime
         according to the crontab style rules.
@@ -49,13 +66,18 @@ class DaylightRepeatingEvent:
         :rtype: datetime.datetime
         '''
         today = start_datetime.replace(hour=0, minute=0)
-        iter = croniter(self.time_daylight_end, today)
-        if start_datetime < iter.get_next(datetime):
-            return start_datetime + timedelta(seconds=self.time_period)
-        else:
-            nextday = today + timedelta(days=1)
-            iter = croniter(self.time_daylight_begin, nextday)
-            return iter.get_next(datetime)
+        iter_today_end = croniter(self.time_daylight_end, today)
+        today_end = iter_today_end.get_next(datetime)
+        if start_datetime <= today_end:
+            start_datetime = start_datetime + timedelta(seconds=self.time_period)
+            if start_datetime <= today_end:
+                return start_datetime
+
+        # the current date-time is greater than daylight end time:
+        # increment the day
+        nextday = today + timedelta(days=1)
+        iter_nextday_begin = croniter(self.time_daylight_begin, nextday)
+        return iter_nextday_begin.get_next(datetime)
 
 
 def ut_rtcSetWakeup():
@@ -64,11 +86,14 @@ def ut_rtcSetWakeup():
     # timeDaylightEnd:   08:30 from Monday to Friday
     wakeup_datetime = DaylightRepeatingEvent(10*60, '0 8 * * 1-5', '30 8 * * 1-5')
     
-    now = datetime(2014, 6, 2, 8, 0) # Monday, 6 June 2014 at 08:00
-    end_datetime = now
+    #now = datetime(2014, 6, 2, 8, 0) # Monday, 6 June 2014 at 08:00
+    now = datetime(2014, 6, 2, 7, 59) # Monday, 6 June 2014 at 07:59
+    end_datetime = now.replace(hour=0, minute=0)
     for cnt in range(4):
         end_datetime = end_datetime + timedelta(days=7) # next Monday
-        while now != end_datetime:
+        while now.replace(hour=0, minute=0) != end_datetime:
+            if wakeup_datetime.is_daylight(now) is False:
+                print '{0} not in daylight'.format(now)
             before = now
             now = wakeup_datetime.next_occurrence(now)
             print 'wakeup time: {0} - delta: {1} seconds'.format( now, int((now-before).total_seconds()) )
