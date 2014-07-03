@@ -71,6 +71,7 @@ def get_delay_between_shots():
     wakeup_datetime = DaylightRepeatingEvent(TIME_ELAPSED_BETWEEN_SHOTS, TIME_DAYLIGHT_BEGIN, TIME_DAYLIGHT_END)
     now = datetime.now()
     next_datetime = wakeup_datetime.next_occurrence(now)
+    logAppend('{0}: will resume at {1}'.format(MAIN_SCRIPT_NAME, next_datetime))
     return int( (next_datetime-now).total_seconds() )
 
 def grab(picturesBaseDir):

@@ -69,7 +69,11 @@ class DaylightRepeatingEvent:
         iter_today_end = croniter(self.time_daylight_end, today)
         today_end = iter_today_end.get_next(datetime)
         if start_datetime <= today_end:
+            iter_today_begin = croniter(self.time_daylight_begin, today)
+            today_begin = iter_today_begin.get_next(datetime)
             start_datetime = start_datetime + timedelta(seconds=self.time_period)
+            if start_datetime < today_begin:
+                start_datetime = today_begin
             if start_datetime <= today_end:
                 return start_datetime
 
