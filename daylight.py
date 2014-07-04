@@ -35,6 +35,7 @@ class DaylightRepeatingEvent:
         :param str time_daylight_begin: cron like format daylight begin time
         :param str time_daylight_end: cron like format daylight end time
         '''
+        #print 'Debug - DaylightRepeatingEvent init:', time_period, time_daylight_begin, time_daylight_end
         self.time_period = time_period
         self.time_daylight_begin = time_daylight_begin
         self.time_daylight_end = time_daylight_end
@@ -68,20 +69,26 @@ class DaylightRepeatingEvent:
         today = start_datetime.replace(hour=0, minute=0)
         iter_today_end = croniter(self.time_daylight_end, today)
         today_end = iter_today_end.get_next(datetime)
+        #print 'Debug - next_occurrence.start_datetime:', start_datetime
+        #print 'Debug - next_occurrence.today_end:', today_end
         if start_datetime <= today_end:
+            next_datetime = start_datetime + timedelta(seconds=self.time_period)
             iter_today_begin = croniter(self.time_daylight_begin, today)
             today_begin = iter_today_begin.get_next(datetime)
-            start_datetime = start_datetime + timedelta(seconds=self.time_period)
-            if start_datetime < today_begin:
-                start_datetime = today_begin
-            if start_datetime <= today_end:
-                return start_datetime
+            #print 'Debug - next_occurrence.today_begin:', today_begin
+            if next_datetime < today_begin:
+                next_datetime = today_begin
+            if next_datetime <= today_end:
+                #print 'Debug - next_occurrence.next_datetime:', next_datetime
+                return next_datetime
 
         # the current date-time is greater than daylight end time:
         # increment the day
         nextday = today + timedelta(days=1)
         iter_nextday_begin = croniter(self.time_daylight_begin, nextday)
-        return iter_nextday_begin.get_next(datetime)
+        next_datetime = iter_nextday_begin.get_next(datetime)
+        #print 'Debug - next_occurrence.next_datetime:', next_datetime
+        return next_datetime
 
 
 def ut_rtcSetWakeup():

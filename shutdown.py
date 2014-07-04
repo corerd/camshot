@@ -30,6 +30,7 @@ from os import geteuid
 from sys import stderr
 from camshotlog import logAppend
 from shell import callExt, ShellError
+from cloud import sync_with_cloud
 
 
 class SuspendError(Exception):
@@ -70,8 +71,9 @@ def suspend(waitSeconds, onResume=None):
     suspendCmd = 'rtcwake -l -m mem -s %d' % (waitSeconds)
     if onResume is not None:
         suspendCmd = '{0} && {1}'.format(suspendCmd, onResume)
-    suspendStartTime = time()
+    sync_with_cloud(120)
     syncDiskWithMemory()
+    suspendStartTime = time()
     try:
         retcode, output = callExt(suspendCmd)
         if len(output) > 0:

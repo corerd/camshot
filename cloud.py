@@ -77,7 +77,7 @@ def syncStatus():
         raise CloudError("DaemonNotRunningError", "Dropbox isn't running!")
     return lines
 
-def syncWait(stimeout):
+def sync_with_cloud(stimeout):
     print 'Wait cloud syncing for {0} seconds...'.format(stimeout)
     SLEEP_SECONDS = 5
     daemonNotRunningErrorAlreadyGet = False 
@@ -113,7 +113,7 @@ def syncWaitFake():
 
 if __name__ == "__main__":
     try:
-        syncWait(30)
+        sync_with_cloud(30)
     except CloudError as e:
         print "Couldn't sync"
         print 'Cloud Exception: {0}'.format(e)

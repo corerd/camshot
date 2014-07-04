@@ -24,7 +24,7 @@
 
 from camgrab import imageCapture
 from camshotlog import logInit, logAppend
-from cloud import syncWait
+from cloud import sync_with_cloud
 from shutdown import shutdown, suspend, hasPrivilegesToShutdown
 from daylight import DaylightRepeatingEvent
 from ConfigParser import RawConfigParser
@@ -51,9 +51,10 @@ class CamShotError(Exception):
     def __str__(self):
         return "{0}".format(self.emesg)
 
-def configUpdate():
+def configUpdate(picturesBaseDir):
     global TIME_ELAPSED_BETWEEN_SHOTS, TIME_DAYLIGHT_BEGIN, TIME_DAYLIGHT_END
-    cfgFileName = '{0}/{1}.cfg'.format(MAIN_SCRIPT_DIR, path.splitext(MAIN_SCRIPT_NAME)[0])
+    cfgFileName = '{0}/{1}.cfg'.format(picturesBaseDir, path.splitext(MAIN_SCRIPT_NAME)[0])
+    #print 'Debug - Search for config file name:', cfgFileName
     config = RawConfigParser()
     try:
         config.read(cfgFileName)
@@ -103,10 +104,9 @@ def grab(picturesBaseDir):
 def grabLoop(workingDir):
     while True:
         tBegin = time()
-        syncWait(120)
-        configUpdate()
+        sync_with_cloud(120)
+        configUpdate(workingDir)
         grab(workingDir)
-        syncWait(120)
         isResumedFromRTC = suspend(get_delay_between_shots() - (time()-tBegin))
         if not isResumedFromRTC:
             return 1 
@@ -130,14 +130,16 @@ def main(argc, argv):
         print '%s: You need to have root privileges to run this script!' % (MAIN_SCRIPT_NAME)
         return 1
     logInit('{0}/{1}-log.txt'.format(workingDir, path.splitext(MAIN_SCRIPT_NAME)[0]))
+    grabLoopExitStatus = 0
     try:
-        if grabLoop(workingDir) == 1:
-            logAppend('%s: stopped by the User' % (MAIN_SCRIPT_NAME))
+        grabLoopExitStatus = grabLoop(workingDir)
     except Exception as e:
         #catch ANY exception
         logAppend('{0}: unrecovable exception {1}'.format(MAIN_SCRIPT_NAME, e))
         return 2  #severe error
-    return 0
+    if grabLoopExitStatus == 1:
+        logAppend('%s: stopped by the User' % (MAIN_SCRIPT_NAME))
+    return grabLoopExitStatus
 
 if __name__ == "__main__":
     ret = main(len(argv), argv)
