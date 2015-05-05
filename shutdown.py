@@ -71,8 +71,8 @@ def suspend(waitSeconds, onResume=None):
     suspendCmd = 'rtcwake -l -m mem -s %d' % (waitSeconds)
     if onResume is not None:
         suspendCmd = '{0} && {1}'.format(suspendCmd, onResume)
-    sync_with_cloud(120)
-    syncDiskWithMemory()
+    sync_with_cloud(300)
+    #syncDiskWithMemory()
     suspendStartTime = time()
     try:
         retcode, output = callExt(suspendCmd)

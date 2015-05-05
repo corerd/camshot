@@ -24,7 +24,7 @@
 
 from camgrab import imageCapture
 from camshotlog import logInit, logAppend
-from cloud import sync_with_cloud
+from cloud import sync_with_cloud, check_and_reset_network_connection
 from shutdown import shutdown, suspend, hasPrivilegesToShutdown
 from daylight import DaylightRepeatingEvent
 from ConfigParser import RawConfigParser
@@ -104,6 +104,7 @@ def grab(picturesBaseDir):
 def grabLoop(workingDir):
     while True:
         tBegin = time()
+        check_and_reset_network_connection()
         sync_with_cloud(120)
         configUpdate(workingDir)
         grab(workingDir)

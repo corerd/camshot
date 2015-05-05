@@ -33,6 +33,7 @@
 from __future__ import with_statement
 
 from camshotlog import logAppend
+from shell import callExt
 from time import sleep
 from contextlib import closing
 from dropbox import DropboxCommand, is_dropbox_running, start_dropbox
@@ -110,6 +111,21 @@ def syncWaitFake():
     print 'File synced in %d seconds...' % SYNC_TIME
     sleep(SYNC_TIME)
 
+def check_and_reset_network_connection():
+    '''Require DNS servers setting.
+    See: http://askubuntu.com/a/465759 '''
+    print 'Check network connection'
+    retcode, output = callExt('ping -c 1 google.com')
+    if retcode != 0:
+        logAppend('network: reset connection')
+        # Require root permissions
+        # See: http://ubuntuforums.org/showthread.php?t=1829796
+        retcode, output = callExt('service network-manager restart')
+        if len(output) > 0:
+            #print the output of the external command
+            for outLine in output.splitlines():
+                logAppend("{0}".format(outLine))
+ 
 
 if __name__ == "__main__":
     try:
