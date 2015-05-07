@@ -111,13 +111,23 @@ def syncWaitFake():
     print 'File synced in %d seconds...' % SYNC_TIME
     sleep(SYNC_TIME)
 
+def isConnectionOn():
+    retcode, output = callExt('ping -c 1 goole.com')
+    if retcode == 0:
+        return True
+    for i in range(2):
+        sleep(3)
+        retcode, output = callExt('ping -c 1 goole.com')
+        if retcode == 0:
+            return True
+    return False
+
 def check_and_reset_network_connection():
     '''Require DNS servers setting.
     See: http://askubuntu.com/a/465759 '''
     print 'Check network connection'
-    retcode, output = callExt('ping -c 1 google.com')
-    if retcode != 0:
-        logAppend('network: reset connection')
+    if not isConnectionOn():
+        logAppend('network:reset connection')
         # Require root permissions
         # See: http://ubuntuforums.org/showthread.php?t=1829796
         retcode, output = callExt('service network-manager restart')
@@ -125,9 +135,16 @@ def check_and_reset_network_connection():
             #print the output of the external command
             for outLine in output.splitlines():
                 logAppend("{0}".format(outLine))
+        if not isConnectionOn():
+            # The connection is lost
+            raise CloudError("network", "ping error")
  
 
-if __name__ == "__main__":
+def tb_check_and_reset_network_connection():
+    check_and_reset_network_connection()
+
+
+def tb_sync_with_cloud():
     try:
         sync_with_cloud(30)
     except CloudError as e:
@@ -135,3 +152,7 @@ if __name__ == "__main__":
         print 'Cloud Exception: {0}'.format(e)
     else:
         print 'Synced'
+
+
+if __name__ == "__main__":
+    tb_check_and_reset_network_connection()
