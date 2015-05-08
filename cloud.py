@@ -104,7 +104,8 @@ def sync_with_cloud(stimeout):
     if statusLines is not None:
         for statusLine in statusLines:
             logAppend('dropbox: {0}'.format(statusLine))
-    raise CloudError("SyncingTimeoutError", "Syncing timeout")
+    # raise CloudError("SyncingTimeoutError", "Syncing timeout")
+    logAppend('dropbox: Syncing timeout')
  
 def syncWaitFake():
     SYNC_TIME = 10 #seconds
@@ -137,7 +138,8 @@ def check_and_reset_network_connection():
                 logAppend("{0}".format(outLine))
         if not isConnectionOn():
             # The connection is lost
-            raise CloudError("network", "ping error")
+            # raise CloudError("network", "ping error")
+            logAppend('network:ping error')
  
 
 def tb_check_and_reset_network_connection():
