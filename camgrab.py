@@ -39,7 +39,7 @@ def imageCapture(cameraIndex, imageName):
 
 if __name__ == "__main__":
     picture = "camshot"
-    if imageCapture(0, picture):
+    if not imageCapture(0, picture):
         print 'Camera grab picture error'
     else:
         print 'Picture save in', picture
