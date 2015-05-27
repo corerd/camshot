@@ -1,0 +1,40 @@
+HOW TO COMPILE
+==============
+http://docs.opencv.org/doc/tutorials/introduction/linux_install/linux_install.html
+
+Required Packages
+[compiler] sudo apt-get install build-essential
+[required] sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+[optional] sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
+
+Check and if necessary install v4l2ucp, v4l-utils and libv4l-dev from synaptic package
+
+Getting  OpenCV and unzip somewhere
+
+cd opencv
+mkdir release
+cd release
+cmake ..
+
+Enter the created temporary directory (<cmake_binary_dir>) and proceed with:
+
+make
+sudo make install
+
+
+
+HOW TO .deb PACKAGE
+===================
+From: http://unix.stackexchange.com/a/192950
+
+Inside the build directory (release), it will generate a CMakeCache.txt file.
+
+Edit the CMakeCache.txt file and change:
+CPACK_BINARY_DEB:BOOL=ON
+
+Run:
+sudo make package
+
+For more info see the CPACK_*_*:BOOL parameters in the cmake files, and consult the CPack documentation:
+http://www.cmake.org/Wiki/CMake:CPackPackageGenerators
+
