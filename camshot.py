@@ -73,12 +73,9 @@ def get_delay_between_shots():
     return int( (next_datetime-now).total_seconds() )
 
 def grab(picturesBaseDir, cameraList):
-    cameraIndex = 0
-
     # Make the grabbed picture file path
     now = datetime.now()
     picturesDirName = '{0:s}/CAMSHOT_{1:%Y%m%d}'.format(picturesBaseDir, now)
-    pictureFileFullName = '{0:s}/CS{1:%Y%m%d%H%M}_{2:02d}'.format(picturesDirName, now, cameraIndex)
     try:
         makedirs(picturesDirName)
         logAppend('%s: create directory %s' % (MAIN_SCRIPT_NAME, picturesDirName))
@@ -86,17 +83,21 @@ def grab(picturesBaseDir, cameraList):
         if not path.isdir(picturesDirName):
             # If the directory doesn't already exist, there was an error on creation
             raise CamShotError("{0}: create directory {1} [OS errno {2}]: {3}".format(MAIN_SCRIPT_NAME, picturesDirName, e.errno, e.strerror))
-    logAppend('%s: grab in file %s' % (MAIN_SCRIPT_NAME, pictureFileFullName))
 
-    # Grab a picture from the first camera
-    imageCaptureTries = 0
-    while imageCaptureTries < 3:
-        if imageCapture(cameraIndex, pictureFileFullName):
-            break;
-        sleep(3)
-        imageCaptureTries = imageCaptureTries + 1
-    if imageCaptureTries >= 3:
-        raise CamShotError('%s: grab picture error' % (MAIN_SCRIPT_NAME))
+    # Grab a picture from cameras
+    cameraIndex = 0
+    for camera in cameraList:
+        pictureFileFullName = '{0:s}/CS{1:%Y%m%d%H%M}_{2:02d}.jpg'.format(picturesDirName, now, cameraIndex)
+        logAppend('%s: grab in file %s' % (MAIN_SCRIPT_NAME, pictureFileFullName))
+        imageCaptureTries = 0
+        while imageCaptureTries < 3:
+            if imageCapture(camera, pictureFileFullName):
+                break;
+            sleep(3)
+            imageCaptureTries = imageCaptureTries + 1
+        if imageCaptureTries >= 3:
+            raise CamShotError('%s: grab picture error' % (MAIN_SCRIPT_NAME))
+        cameraIndex = cameraIndex + 1
 
 def grabLoop(workingDir, cameraList, suspendToMemory):
     while True:

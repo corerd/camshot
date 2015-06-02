@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#
+
 # The MIT License (MIT)
 # 
 # Copyright (c) 2014 Corrado Ubezio
@@ -22,24 +22,72 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# See: Capturing a single image from my webcam in Java or Python
-# Link: http://stackoverflow.com/a/11094891
-#
-from cv2 import *
+"""Capturing a single image from webcam
 
-def imageCapture(cameraIndex, imageName):
+In Linux there are the following methods:
+
+METHOD 1: RTSP protocol
+avconv -i rtsp://<user>:<pass>@<local_ip>:<port>/video.mjpg -vframes 1 -r 1 -s 640x480 image.jpg
+
+METHOD 2: HTTP protocol
+avconv -i http://<user>:<pass>@<local_ip>:<port>/video.mjpg -vframes 1 -r 1 -s 640x480 image.jpg
+
+METHOD 3: If the camera is smart enough, it is possible to send an http request to take a snapshot
+wget --tries=2 --timeout=10 http://<user>:<pass>@<local_ip>:<port>/cgi-bin/jpg/image -O snapshot.jpg
+
+See also: Link: http://stackoverflow.com/a/11094891
+"""
+
+from cv2 import *
+import requests
+
+def imageCaptureFromIP(cameraUrl, username, password, imageFileName):
+    # See: http://stackoverflow.com/a/13137873
+    r = requests.get(cameraUrl, auth=(username, password), stream=True)
+    if r.status_code != 200:
+        return False
+    with open(imageFileName, 'wb') as f:
+        for chunk in r.iter_content(1024):
+            f.write(chunk)
+    return True
+
+def imageCaptureFromUSB(cameraNumber, imageFileName):
     # initialize the camera
-    cam = VideoCapture(cameraIndex)
+    cam = VideoCapture(cameraNumber)
     s, img = cam.read()
     if not s:
         # frame captured returns errors
         return False
-    imwrite(imageName+'.jpg',img) #save JPG image
+    imwrite(imageFileName, img) #save JPG image
     return True
 
-if __name__ == "__main__":
-    picture = "camshot"
-    if not imageCapture(0, picture):
-        print 'Camera grab picture error'
+def imageCapture(cameraDesc, imageFileName):
+    camProtAndAddr = cameraDesc['source'].split('://')
+    if camProtAndAddr[0] == 'usb':
+        s = imageCaptureFromUSB(eval(camProtAndAddr[1]), imageFileName)
+    elif camProtAndAddr[0] == 'http':
+        s = imageCaptureFromIP(cameraDesc['source'],
+                        cameraDesc['optional-auth']['user-name'],
+                        cameraDesc['optional-auth']['password'],
+                        imageFileName)
     else:
-        print 'Picture save in', picture
+        s = False
+    return s
+    
+
+if __name__ == "__main__":
+    from camshotcfg import ConfigDataLoad
+    from datetime import datetime
+    cfg = ConfigDataLoad('camshotcfg.json')
+
+    # Make the grabbed picture file path
+    now = datetime.now()
+    picturesDirName = '{0:s}/CAMSHOT_{1:%Y%m%d}'.format(cfg.data['camshot-datastore'], now)
+ 
+    cameraIndex = 0
+    for camera in cfg.data['cameras-list']:
+        print 'Get image from',  camera['source']
+        pictureFileFullName = '{0:s}/CS{1:%Y%m%d%H%M}_{2:02d}.jpg'.format(picturesDirName, now, cameraIndex)
+        imageCapture(camera, pictureFileFullName)
+        cameraIndex = cameraIndex + 1
+
