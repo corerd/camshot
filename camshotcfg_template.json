@@ -1,0 +1,39 @@
+{
+    "_rem-desc": "CONFIGURATION TEMPLATE FOR CAMSHOT",
+
+    "_rem-definition": "metadata are vaules surrounded by the characters < and >",
+    "_howto-customize": "Replace the metadata with actual values",
+
+    "_rem-todo-first": "Copy this file in camshotcfg.json",
+    "_rem-todo-after": "Customize",
+
+    "camshot-datastore": "<user-shots-path>",
+
+    "camshot-schedule": {
+        "start-time": "<Start time in cron like format>",
+        "end-time"  : "<End time in cron like format>",
+        "seconds-to-wait": "<Number of seconds to wait between shots>",
+        "suspend": "<suspend to memory while waiting between shots: YES or NO>"
+    },
+
+    "_rem-camera-list": "List of supported cameras",
+    "camera-list": [
+        {
+            "optional-auth": {
+                "user-name" : "<camera_0 user>",
+                "password": "<camera_0 password>"
+            },
+            "source": "<camera_0 protocol_and_address>"
+        },
+        {
+            "source": "<camera_1 protocol_and_address>"
+        },
+        {
+            "optional-auth": {
+                "user-name" : "<camera_2 user>",
+                "password": "<camera_2 password>"
+            },
+            "source": "<camera_2 protocol_and_address>"
+        }
+    ]
+}
