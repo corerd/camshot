@@ -25,7 +25,7 @@
 # How to Make Your Linux PC Wake From Sleep Automatically
 # Link http://www.howtogeek.com/121241/how-to-make-your-linux-pc-wake-from-sleep-automatically/
 #
-from time import time 
+from time import time, sleep 
 from os import geteuid
 from sys import stderr
 from camshotlog import logAppend
@@ -65,30 +65,33 @@ def syncDiskWithMemory():
         raise SuspendError("OSError", "sync execution failed: {0}".format(e))
  
 
-def suspend(waitSeconds, onResume=None):
+def suspend(suspendToMemory, waitSeconds, onResume=None):
     if waitSeconds <= 0:
         return
-    suspendCmd = 'rtcwake -l -m mem -s %d' % (waitSeconds)
-    if onResume is not None:
-        suspendCmd = '{0} && {1}'.format(suspendCmd, onResume)
     sync_with_cloud(300)
     #syncDiskWithMemory()
     suspendStartTime = time()
-    try:
-        retcode, output = callExt(suspendCmd)
-        if len(output) > 0:
-            #print the output of the external command
-            for outLine in output.splitlines():
-                logAppend("callExt: {0}".format(outLine))
-        if retcode < 0:
-            raise SuspendError("rtc", "suspend: rtcwake was terminated by signal {0}".format(-retcode))
-        if retcode > 0:
-            raise SuspendError("rtc", "suspend: rtcwake returned error code {0}".format(retcode))
-    except ShellError as e:
-        raise SuspendError("OSError", "suspend: rtcwake execution failed: {0}".format(e))
+    if suspendToMemory:
+        suspendCmd = 'rtcwake -l -m mem -s %d' % (waitSeconds)
+        if onResume is not None:
+            suspendCmd = '{0} && {1}'.format(suspendCmd, onResume)
+        try:
+            retcode, output = callExt(suspendCmd)
+            if len(output) > 0:
+                #print the output of the external command
+                for outLine in output.splitlines():
+                    logAppend("callExt: {0}".format(outLine))
+            if retcode < 0:
+                raise SuspendError("rtc", "suspend: rtcwake was terminated by signal {0}".format(-retcode))
+            if retcode > 0:
+                raise SuspendError("rtc", "suspend: rtcwake returned error code {0}".format(retcode))
+        except ShellError as e:
+            raise SuspendError("OSError", "suspend: rtcwake execution failed: {0}".format(e))
+    else:
+        sleep(waitSeconds)
     # Resume from suspend
     if time() - suspendStartTime < waitSeconds:
-        # Resume from suspend was not caused by the rtc, such as power button or keyboard
+       # Resume from suspend was not caused by the rtc, such as power button or keyboard
         return False 
     return True
 

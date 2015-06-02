@@ -79,6 +79,9 @@ def syncStatus():
     return lines
 
 def sync_with_cloud(stimeout):
+    syncWaitFake()
+    return
+
     print 'Wait cloud syncing for {0} seconds...'.format(stimeout)
     SLEEP_SECONDS = 5
     daemonNotRunningErrorAlreadyGet = False 
@@ -108,7 +111,7 @@ def sync_with_cloud(stimeout):
     logAppend('dropbox: Syncing timeout')
  
 def syncWaitFake():
-    SYNC_TIME = 10 #seconds
+    SYNC_TIME = 1 #seconds
     print 'File synced in %d seconds...' % SYNC_TIME
     sleep(SYNC_TIME)
 

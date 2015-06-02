@@ -17,7 +17,7 @@
     },
 
     "_rem-camera-list": "List of supported cameras",
-    "camera-list": [
+    "cameras-list": [
         {
             "optional-auth": {
                 "user-name" : "<camera_0 user>",

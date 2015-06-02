@@ -44,7 +44,7 @@ if __name__ == "__main__":
     print cfg.data['camshot-schedule']['end-time']
     print cfg.data['camshot-schedule']['seconds-to-wait']
     print cfg.data['camshot-schedule']['suspend']
-    for camera in cfg.data['camera-list']:
+    for camera in cfg.data['cameras-list']:
         print camera['source']
         try:
             print camera['optional-auth']['user-name']
