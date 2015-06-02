@@ -39,16 +39,29 @@ See also: Link: http://stackoverflow.com/a/11094891
 """
 
 from cv2 import *
+from os import remove, stat
+from os.path import isfile
 import requests
 
 def imageCaptureFromIP(cameraUrl, username, password, imageFileName):
     # See: http://stackoverflow.com/a/13137873
-    r = requests.get(cameraUrl, auth=(username, password), stream=True)
+    try:
+        r = requests.get(cameraUrl, auth=(username, password), timeout=10, stream=True)
+    except Exception:
+        # TODO: better to handle exceptions as in:
+        # http://docs.python-requests.org/en/latest/user/quickstart/#errors-and-exceptions
+        return False
     if r.status_code != 200:
         return False
     with open(imageFileName, 'wb') as f:
         for chunk in r.iter_content(1024):
             f.write(chunk)
+    if not isfile(imageFileName):
+        return False
+    statinfo = stat(imageFileName)
+    if statinfo.st_size == 0:
+        remove(imageFileName)
+        return False
     return True
 
 def imageCaptureFromUSB(cameraNumber, imageFileName):

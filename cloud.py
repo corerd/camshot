@@ -79,9 +79,6 @@ def syncStatus():
     return lines
 
 def sync_with_cloud(stimeout):
-    syncWaitFake()
-    return
-
     print 'Wait cloud syncing for {0} seconds...'.format(stimeout)
     SLEEP_SECONDS = 5
     daemonNotRunningErrorAlreadyGet = False 

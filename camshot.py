@@ -96,7 +96,7 @@ def grab(picturesBaseDir, cameraList):
             sleep(3)
             imageCaptureTries = imageCaptureTries + 1
         if imageCaptureTries >= 3:
-            raise CamShotError('%s: grab picture error' % (MAIN_SCRIPT_NAME))
+            logAppend('%s: grab picture error' % (MAIN_SCRIPT_NAME))
         cameraIndex = cameraIndex + 1
 
 def grabLoop(workingDir, cameraList, suspendToMemory):
