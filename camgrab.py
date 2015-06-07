@@ -91,16 +91,30 @@ def imageCapture(cameraDesc, imageFileName):
 if __name__ == "__main__":
     from camshotcfg import ConfigDataLoad
     from datetime import datetime
+    from os import makedirs, path
+
     cfg = ConfigDataLoad('camshotcfg.json')
 
     # Make the grabbed picture file path
     now = datetime.now()
     picturesDirName = '{0:s}/CAMSHOT_{1:%Y%m%d}'.format(cfg.data['camshot-datastore'], now)
+
+    try:
+        makedirs(picturesDirName)
+    except OSError, e:
+        if not path.isdir(picturesDirName):
+            # If the directory doesn't already exist, there was an error on creation
+            print "{0}: create directory {1} [OS errno {2}]: {3}".format(MAIN_SCRIPT_NAME, picturesDirName, e.errno, e.strerror)
+
+
  
     cameraIndex = 0
     for camera in cfg.data['cameras-list']:
         print 'Get image from',  camera['source']
         pictureFileFullName = '{0:s}/CS{1:%Y%m%d%H%M}_{2:02d}.jpg'.format(picturesDirName, now, cameraIndex)
-        imageCapture(camera, pictureFileFullName)
+        print 'Save in',pictureFileFullName 
+        s = imageCapture(camera, pictureFileFullName)
+        if not s:
+            print '...Fail'
         cameraIndex = cameraIndex + 1
 
